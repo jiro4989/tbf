@@ -18,6 +18,8 @@ tbf tbf06 -o tbf06.tsv
 
 ## インストール
 
+以下のコマンドでインストールするかReleasesからダウンロードしてください。
+
 ```bash
 go get github.com/jiro4989/tbf
 ```
