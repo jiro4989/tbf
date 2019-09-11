@@ -1,5 +1,7 @@
 # tbf
 
+[![Build Status](https://travis-ci.org/jiro4989/tbf.svg?branch=master)](https://travis-ci.org/jiro4989/tbf)
+
 技術書典のサークル情報のリストを取得するコマンドです。
 
 ## 使い方
