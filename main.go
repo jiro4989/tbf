@@ -1,34 +1,78 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
+	"os"
+
+	"github.com/docopt/docopt-go"
+)
+
+const (
+	doc = `tbf は技術書典のサイトからサークル情報の一覧を取得します。
+
+Usage:
+	tbf [options] <tbf_id>
+	tbf -h | --help
+	tbf -v | --version
+
+Examples:
+	tbf tbf07
+	tbf tbf07 -o tbf07.tsv
+
+Options:
+	-h --help             このヘルプを出力する。
+	-v --version          バージョン情報を出力する。
+	-o --outfile=<FILE>   ファイルに出力する。
+	`
+)
+
+const (
+	ErrorCodeOK ErrorCode = iota
+	ErrorCodeFailedBinding
+	ErrorCodeCreateFile
+)
+
+type (
+	Config struct {
+		TBFID   string `docopt:"<tbf_id>"`
+		OutFile string `docopt:"--outfile"`
+	}
+	ErrorCode int
 )
 
 func main() {
-	// 会場情報
-	// https://techbookfest.org/api/event/tbf07
-	// サークル情報
-	// https://techbookfest.org/api/circle?eventID=tbf07&eventExhibitCourseID=3&visibility=site&limit=100&onlyAdoption=true
+	os.Exit(int(Main(os.Args)))
+}
 
-	//url := os.Args[1]
-	//fmt.Println(url)
-	url := "https://techbookfest.org/api/circle?eventID=tbf07&eventExhibitCourseID=3&visibility=site&limit=100&onlyAdoption=true"
-	resp, err := http.Get(url)
+func Main(argv []string) ErrorCode {
+	parser := &docopt.Parser{}
+	args, _ := parser.ParseArgs(doc, argv[1:], Version)
+	config := Config{}
+	err := args.Bind(&config)
 	if err != nil {
-		panic(err)
+		fmt.Fprintln(os.Stderr, err)
+		return ErrorCodeFailedBinding
 	}
-	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
+	var w *os.File
+	if config.OutFile == "" {
+		w = os.Stdout
+	} else {
+		var err error
+		w, err = os.Create(config.OutFile)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return ErrorCodeCreateFile
+		}
+		defer w.Close()
 	}
-	var circle Circle
-	if err := json.Unmarshal(b, &circle); err != nil {
-		panic(err)
+
+	tbfID := config.TBFID
+	baseURL := fmt.Sprintf("https://techbookfest.org/api/circle?eventID=%s&visibility=site&limit=100&onlyAdoption=true", tbfID)
+	for _, c := range fetchCircleOverviews(tbfID, baseURL) {
+		text := fmt.Sprintf("%s\t%s\t%s\t%s", c.Name, c.NameRuby, c.URL, c.GenreFreeFormat)
+		fmt.Fprintln(w, text)
 	}
-	fmt.Println(circle)
+
+	return ErrorCodeOK
 }
