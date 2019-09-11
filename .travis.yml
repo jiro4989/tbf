@@ -1,0 +1,28 @@
+language: go
+
+env:
+  global:
+    - GO111MODULE=on
+
+script:
+  - go version
+  - make build
+  - make install
+  - ./bin/tbf -h
+  - ./bin/tbf -v
+
+before_deploy:
+  - make archive
+
+deploy:
+  provider: releases
+  api_key:
+    secure: iVeMbkheZOYzBpr0uCTdzqkT1hIr8i2G6wldThyDJqJ33aw9e5t822MaEG+ptCcYn3gvM3So03ajK9mJqih7F6k2IpxrlVrP9KKTTr+DgtyEEM2IiMSZWcA0EZhdDFghSPD6PzBW14JO//pq21r3L0CX6tzXub6nb1guXsS8C+IXMkLqflmT5Glm0uAytPIWrftceZyNwjOl2NDkQgBF73Jgd9ty1s4g4AKkV8j54cKAYwl3bRrVpCYfbXKM2nFPkb+Bdm8k6yTTwCnozqH0QK8Et8UOLMjnJ7Br6spfoJabBBiZMW6cPzyP2AJS/I+Hv7KA5mMiZR7osikbEDfFgEWTrx9C8YzEYkJ4x+tIbzhVDq3TIfKJiNORwQy+AkojkMzKn8z/XoKPxm+SFru4mif3dmWDdL/B19Imi9hbYvlKKX9IFrbIGXynqvll/aOJgWV2OPZTY+dAzjbkh7Yd2MGkDSyYCfiYOsRfsygzC5qXB1LHweN+Dxyieeks0CeuABLUb5cla9yeKd2szFAqw52r+33aF2qbtL+UYH3B3B585kSS/hGfrxiqtrtuXPxquFZ7mlIiiMZwvA/gNIHAiX234yxXO9OSpdCFBqAGZyVaFFms9YKI8O0XahNyFTjdI+H0cgVL8Ka1PCP7J/piGUJh7+v0eiU6PI3a++AdOoo=
+  keep-history: false
+  skip_cleanup: true
+  file:
+    - 'dist/*.tar.gz'
+    - 'dist/*.zip'
+  file_glob: true
+  on:
+    tags: true
